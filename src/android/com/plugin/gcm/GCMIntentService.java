@@ -9,10 +9,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import com.google.android.gcm.GCMBaseIntentService;
 
@@ -109,8 +112,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 				.setContentTitle(extras.getString("title"))
 				.setTicker(extras.getString("title"))
 				.setContentIntent(contentIntent)
-				.setAutoCancel(true)
-				.setColor(iconColor);
+				.setAutoCancel(true);
 
 		String message = extras.getString("message");
 		if (message != null) {
@@ -118,7 +120,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		} else {
 			mBuilder.setContentText("<missing message content>");
 		}
-
+// .setColor(iconColor)
 		String msgcnt = extras.getString("msgcnt");
 		if (msgcnt != null) {
 			mBuilder.setNumber(Integer.parseInt(msgcnt));
@@ -142,9 +144,22 @@ public class GCMIntentService extends GCMBaseIntentService {
 		catch(Exception e) {
 			Log.e(TAG, "Number format exception - Error parsing Notification ID" + e.getMessage());
 		}
-		
+		setNotificationLargeIcon(extras, context.getPackageName(), context.getResources(), mBuilder);
+
 		mNotificationManager.notify((String) appName, notId, mBuilder.build());
 	}
+
+	private void setNotificationLargeIcon(Bundle extras, String packageName, Resources resources, NotificationCompat.Builder mBuilder) {
+        int largeIconId = 0;
+        largeIconId = resources.getIdentifier("drawable/icon", "drawable", packageName);
+        if (largeIconId != 0) {
+            Bitmap largeIconBitmap = BitmapFactory.decodeResource(resources, largeIconId);
+            mBuilder.setLargeIcon(largeIconBitmap);
+            Log.d(TAG, "using resources large-icon from gcm");
+        } else {
+            Log.d(TAG, "Not setting large icon");
+        }
+    }
 	
 	private static String getAppName(Context context)
 	{
